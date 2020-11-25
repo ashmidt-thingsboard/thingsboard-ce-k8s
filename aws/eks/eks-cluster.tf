@@ -1,51 +1,68 @@
+provider "aws" {
+  version = ">= 2.28.1"
+  region  = var.aws_region
+}
+
+locals {
+  cluster_name = var.cluster_name
+}
+
 module "eks" {
   source       = "terraform-aws-modules/eks/aws"
   cluster_name = local.cluster_name
-  subnets      = module.vpc.private_subnets
+  subnets      = var.create_new_subnets == "true" ? aws_subnet.public.*.id : var.public_subnets
   cluster_version = var.cluster_version
   tags = {
-    Environment = "training"
-    GithubRepo  = "terraform-aws-eks"
-    GithubOrg   = "terraform-aws-modules"
+    Environment = var.env
+    Cluster     = var.cluster_name
   }
-
-  vpc_id = module.vpc.vpc_id
-
-  node_groups = {
-    eks_nodes_1 = {
-      desired_capacity = 3
-      max_capacity     = 8
-      min_capaicty     = 1
-      subnet_ids       = module.vpc.private_subnets[0]
+  cluster_endpoint_private_access	= "true"
+  vpc_id = var.create_new_vpc == "true" ? aws_vpc.selected[0].id : var.vpc_id
+  map_users = var.map-users-eks
+  worker_groups = [
+    {
+      name = "workers1"
+      key_name = var.ssh_key_name
+      asg_desired_capacity = 1
+      asg_max_size = 8
+      asg_min_size = 0
+      subnets = var.create_new_subnets == "true" ? [aws_subnet.private[0].id] : [var.private_subnets[0]]
+      public_ip = false
       instance_type = var.worker_type
-      tags = {
+      additional_tags = {
+        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
+        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
+      }
+    },
+    {
+      name = "workers2"
+      key_name = var.ssh_key_name
+      asg_desired_capacity = 1
+      asg_max_size = 8
+      asg_min_size = 0
+      subnets = var.create_new_subnets == "true" ? [aws_subnet.private[1].id] : [var.private_subnets[1]]
+      public_ip = false
+      instance_type = var.worker_type
+      additional_tags = {
+        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
+        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
+      }
+    },
+    {
+      name = "workers3"
+      key_name = var.ssh_key_name
+      asg_desired_capacity = 1
+      asg_max_size = 8
+      asg_min_size = 0
+      subnets = var.create_new_subnets == "true" ? [aws_subnet.private[2].id] : [var.private_subnets[2]]
+      public_ip = false
+      instance_type = var.worker_type
+      additional_tags = {
         "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
         "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
       }
     }
-    eks_nodes_2 = {
-      desired_capacity = 3
-      max_capacity     = 8
-      min_capaicty     = 1
-      subnet_ids       = module.vpc.private_subnets[1]
-      instance_type = var.worker_type
-      tags = {
-        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
-        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
-      }
-    }
-    eks_nodes_3 = {
-      desired_capacity = 3
-      max_capacity     = 8
-      min_capaicty     = 1
-      subnet_ids       = module.vpc.private_subnets[2]
-      instance_type = var.worker_type
-      tags = {
-        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
-        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
-      }
-    }
-  }
+  ]
 }
 
 data "aws_eks_cluster" "cluster" {
