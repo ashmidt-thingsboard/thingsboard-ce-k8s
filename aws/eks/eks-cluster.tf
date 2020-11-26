@@ -29,10 +29,18 @@ module "eks" {
       subnets = var.create_new_subnets == "true" ? [aws_subnet.private[0].id] : [var.private_subnets[0]]
       public_ip = false
       instance_type = var.worker_type
-      additional_tags = {
-        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
-        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
-      }
+      tags = [
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/enabled"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        },
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/${local.cluster_name}"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        }
+      ]
     },
     {
       name = "workers2"
@@ -43,10 +51,18 @@ module "eks" {
       subnets = var.create_new_subnets == "true" ? [aws_subnet.private[1].id] : [var.private_subnets[1]]
       public_ip = false
       instance_type = var.worker_type
-      additional_tags = {
-        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
-        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
-      }
+      tags = [
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/enabled"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        },
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/${local.cluster_name}"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        }
+      ]
     },
     {
       name = "workers3"
@@ -57,10 +73,18 @@ module "eks" {
       subnets = var.create_new_subnets == "true" ? [aws_subnet.private[2].id] : [var.private_subnets[2]]
       public_ip = false
       instance_type = var.worker_type
-      additional_tags = {
-        "kubernetes.io/cluster/${local.cluster_name}/autoscalerenable" = "k8s.io/cluster-autoscaler/enabled"
-        "kubernetes.io/cluster/${local.cluster_name}/autoscaler"  = "k8s.io/cluster-autoscaler/${local.cluster_name}"
-      }
+      tags = [
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/enabled"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        },
+        {
+          "key"                 = "k8s.io/cluster-autoscaler/${local.cluster_name}"
+          "propagate_at_launch" = "false"
+          "value"               = "true"
+        }
+      ]
     }
   ]
 }
